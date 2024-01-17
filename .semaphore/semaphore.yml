@@ -26,6 +26,8 @@ blocks:
             - cache store node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json) node_modules
   - name: Tests
     task:
+      secrets:
+        - name: Trunk API Token
       env_vars:
         - name: NODE_ENV
           value: test
@@ -44,10 +46,11 @@ blocks:
           epilogue:
             always:
               commands:
-                - '[[ -f junit.xml ]] && test-results publish junit.xml'
+                # Publish results to Semaphore
+                - test-results publish junit.xml
+                # Upload results to trunk.io
                 - curl -fsSL --retry 3 "https://trunk.io/releases/analytics-cli/latest" -o ./trunk-analytics-uploader
                 - chmod +x ./trunk-analytics-uploader
-                - ls junit.xml
                 - ./trunk-analytics-uploader upload --junit-paths "junit.xml" --org-url-slug "semaphore-example" --token "${TRUNK_API_TOKEN}"
           commands:
             - 'cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master'
