@@ -49,6 +49,9 @@ global_job_config:
          - '[[ -f junit.xml ]] && test-results publish junit.xml'
 after_pipeline:
   task:
+    prologue:
+      commands:
+        - checkout
     secrets:
       - name: Trunk API Token
     jobs:
