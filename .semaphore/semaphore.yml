@@ -11,7 +11,7 @@ blocks:
         - name: NODE_ENV
           value: test
         - name: CI
-          value: 'true'
+          value: "true"
       prologue:
         commands:
           - checkout
@@ -21,16 +21,18 @@ blocks:
       jobs:
         - name: client npm install and cache
           commands:
-            - 'cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master'
+            - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
             - npm install
             - cache store node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json) node_modules
   - name: Tests
     task:
+      secrets:
+        - name: Trunk API Token
       env_vars:
         - name: NODE_ENV
           value: test
         - name: CI
-          value: 'true'
+          value: "true"
       prologue:
         commands:
           - checkout
@@ -40,17 +42,21 @@ blocks:
       jobs:
         - name: Run Tests
           commands:
-            - 'cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master'
+            - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
             - npm test
-global_job_config:
-  epilogue:
-    always:
-      commands:
-         - '[[ -f junit.xml ]] && test-results publish junit.xml'
+      epilogue:
+        always:
+          commands:
+            # Publish results to Semaphore
+            - test-results publish junit.xml
+            # Upload results to trunk.io
+            - curl -fsSL --retry 3 "https://trunk.io/releases/analytics-cli/latest" -o ./trunk-analytics-uploader
+            - chmod +x ./trunk-analytics-uploader
+            - ./trunk-analytics-uploader upload --junit-paths "junit.xml" --org-url-slug "semaphore-example" --token "${TRUNK_API_TOKEN}"
+
 after_pipeline:
   task:
     jobs:
       - name: Publish Results
         commands:
           - test-results gen-pipeline-report
-
