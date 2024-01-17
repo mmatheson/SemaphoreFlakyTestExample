@@ -1,12 +1,9 @@
-# Use the latest stable version of Semaphore 2.0 YML syntax:
 version: v1.0
-
 name: Semaphore JavaScript Example Pipeline
 agent:
   machine:
     type: e2-standard-2
     os_image: ubuntu2204
-
 blocks:
   - name: Install dependencies
     task:
@@ -15,25 +12,18 @@ blocks:
           value: test
         - name: CI
           value: 'true'
-
       prologue:
         commands:
-          # Get the latest version of our source code from GitHub:
           - checkout
-
-          # Use the version of Node.js specified in .nvmrc.
-          # Semaphore provides nvm preinstalled.
           - nvm use
           - node --version
           - npm --version
       jobs:
         - name: client npm install and cache
           commands:
-            - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
+            - 'cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master'
             - npm install
-
             - cache store node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json) node_modules
-
   - name: Tests
     task:
       env_vars:
@@ -50,6 +40,5 @@ blocks:
       jobs:
         - name: Run Tests
           commands:
-            - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
+            - 'cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master'
             - npm test
-
