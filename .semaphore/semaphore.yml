@@ -42,3 +42,15 @@ blocks:
           commands:
             - 'cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master'
             - npm test
+global_job_config:
+  epilogue:
+    always:
+      commands:
+         - '[[ -f junit.xml ]] && test-results publish junit.xml'
+after_pipeline:
+  task:
+    jobs:
+      - name: Publish Results
+        commands:
+          - test-results gen-pipeline-report
+
