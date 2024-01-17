@@ -39,6 +39,16 @@ blocks:
           - npm --version
       jobs:
         - name: Run Tests
+          secrets:
+            - name: Trunk API Token
+          epilogue:
+            always:
+              commands:
+                - '[[ -f junit.xml ]] && test-results publish junit.xml'
+                - curl -fsSL --retry 3 "https://trunk.io/releases/analytics-cli/latest" -o ./trunk-analytics-uploader
+                - chmod +x ./trunk-analytics-uploader
+                - ls junit.xml
+                - ./trunk-analytics-uploader upload --junit-paths "junit.xml" --org-url-slug "semaphore-example" --token "${TRUNK_API_TOKEN}"
           commands:
             - 'cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master'
             - npm test
@@ -46,11 +56,8 @@ global_job_config:
   epilogue:
     always:
       commands:
-         - '[[ -f junit.xml ]] && test-results publish junit.xml'
 after_pipeline:
   task:
-    secrets:
-      - name: Trunk API Token
     jobs:
       - name: Publish Results
         commands:
