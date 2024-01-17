@@ -60,10 +60,3 @@ after_pipeline:
       - name: Publish Results
         commands:
           - test-results gen-pipeline-report
-      - name: Upload test results to trunk.io
-        commands:
-          - checkout
-          - curl -fsSL --retry 3 "https://trunk.io/releases/analytics-cli/latest" -o ./trunk-analytics-uploader
-          - chmod +x ./trunk-analytics-uploader
-          - ls junit.xml
-          - ./trunk-analytics-uploader upload --junit-paths "junit.xml" --org-url-slug "semaphore-example" --token "${TRUNK_API_TOKEN}"
