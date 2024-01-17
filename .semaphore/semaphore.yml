@@ -59,4 +59,5 @@ after_pipeline:
         commands:
           - curl -fsSL --retry 3 "https://trunk.io/releases/analytics-cli/latest" -o ./trunk-analytics-uploader
           - chmod +x ./trunk-analytics-uploader
+          - git status
           - ./trunk-analytics-uploader upload --junit-paths "junit.xml" --org-url-slug "semaphore-example" --token "${TRUNK_API_TOKEN}"
